@@ -1,0 +1,17 @@
+# Libraries
+ipython
+ipykernel
+scikit-learn
+scipy
+numpy
+matplotlib
+pandas
+
+# Linting/Tooling
+pylint
+flake8
+mypy
+isort
+autopep8
+pre-commit
+black
