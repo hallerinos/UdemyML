@@ -37,23 +37,39 @@ class KNNClassifier:
         hits = [0] * len(y1)
         for (idx, (y1, y2)) in enumerate(zip(y1, y2)):
             hits[idx] = 1 if y1 == y2 else 0
-        return 100 * np.mean(hits)
+        return np.mean(hits)
 
 
 def main():
     plt.figure()
     x_train, y_train = generate_data([5, 5, 5], cov=[[10, 0], [0, 10]])
-    plot_data(x_train, y_train, size=100, marker='h', colors=['black' for i in range(3)])
+    plot_data(x_train, y_train, size=150, marker='h', colors=['black' for i in range(3)])
     plot_data(x_train, y_train, size=60, marker='h')
 
-    knn = KNNClassifier(3)
-    knn.fit(x_train, y_train)
+    x, y = generate_data([33, 33, 33], cov=[[20, 0], [0, 20]])
 
-    x, y = generate_data([10, 10, 10], cov=[[20, 0], [0, 20]])
+    scores = []
+    y_preds = []
+    for i in range(1, 100):
+        knn = KNNClassifier(i)
+        knn.fit(x_train, y_train)
+        y_pred = knn.predict(x)
+        score = knn.score(y_pred, y)
+        if abs(score - 1.0 / 3) < 0.2:
+            break
+        y_preds.append(y_pred)
+        scores.append(score)
+    print(scores)
+
+    bs_idx = np.flip(np.argsort(scores))[0]
+    knn = KNNClassifier(bs_idx + 1)
+    knn.fit(x_train, y_train)
+    x, y = generate_data([20, 20, 20], cov=[[30, 0], [0, 30]])
+    plot_data(x, y, size=100, marker='o')
     y_pred = knn.predict(x)
-    plot_data(x, y, size=100, marker='s')
-    plot_data(x, y_pred, size=50, marker='o')
-    plt.title(f'Prediction accuracy: {np.around(knn.score(y_pred, y), 2)}%')
+    score = knn.score(y_pred, y)
+    plot_data(x, y_pred, size=20, marker='o')
+    plt.title(f'Prediction accuracy: {np.around(score, 3)}')
     plt.show()
 
 
