@@ -42,18 +42,18 @@ class KNNClassifier:
         x_slice, y_slice = x[ridxs], y[ridxs]
         self.fit(x_slice, y_slice)
 
+        # conjugate set for nns optimization, determined by best score
         x_conj, y_conj = np.delete(x, ridxs, axis=0), np.delete(y, ridxs)
         scores = []
-        for nn in range(3, 10):
+        for nn in range(3, 20):
             self.nns = nn
             y_pred = self.predict(x_conj)
             score = self.score(y_pred, y_conj)
             scores.append(score)
             if abs(score - 1.0 / self.num_classes) < 0.1:
                 break
-        print(scores)
         best_idx = np.flip(np.argsort(scores))[0]
-        self.nns = best_idx + 3  # set nn value with best score
+        self.nns = best_idx + 3  # sets largest nn value with best score
         self.fit(x, y)  # fit the full data again
 
 
