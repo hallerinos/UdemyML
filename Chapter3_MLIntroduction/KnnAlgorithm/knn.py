@@ -58,21 +58,25 @@ class KNNClassifier:
 
 
 def main():
-    plt.figure()
+    # create training data
     x_train, y_train = generate_data([20, 20, 20], cov=[[20, 0], [0, 20]])
-    plot_data(x_train, y_train, size=150, marker='h', colors=['black' for i in range(3)])
-    plot_data(x_train, y_train, size=60, marker='h')
 
     # create knn object and optimize nns
     knn = KNNClassifier()
     knn.fit(x_train, y_train)
     knn.optimize_nns()
-    print(f"optimized nns value: {knn.nns}")
+    print(f"Optimized nns value: {knn.nns}")
 
+    # use optimized model for prediction
     x, y = generate_data([20, 20, 20], cov=[[20, 0], [0, 20]])
-    plot_data(x, y, size=100, marker='o')
     y_pred = knn.predict(x)
     score = knn.score(y_pred, y)
+
+    # prepare combined figure
+    plt.figure()
+    plot_data(x_train, y_train, size=150, marker='h', colors=['black' for i in range(3)])
+    plot_data(x_train, y_train, size=60, marker='h')
+    plot_data(x, y, size=100, marker='o')
     plot_data(x, y_pred, size=20, marker='o')
     plt.title(f'Prediction accuracy: {np.around(score, 3)}')
     plt.show()
