@@ -57,6 +57,16 @@ class KNNClassifier:
         self.fit(x, y)  # fit the full data again
 
 
+def figure_combined(x_train, y_train, x, y, y_pred, score):
+    plt.figure()
+    plot_data(x_train, y_train, size=150, marker='h', colors=['black' for i in range(3)])
+    plot_data(x_train, y_train, size=60, marker='h')
+    plot_data(x, y, size=100, marker='o')
+    plot_data(x, y_pred, size=20, marker='o')
+    plt.title(f'Prediction accuracy: {np.around(score, 3)}')
+    plt.show()
+
+
 def main():
     # create training data
     x_train, y_train = generate_data([20, 20, 20], cov=[[20, 0], [0, 20]])
@@ -70,16 +80,10 @@ def main():
     # use optimized model for prediction
     x, y = generate_data([20, 20, 20], cov=[[20, 0], [0, 20]])
     y_pred = knn.predict(x)
-    score = knn.score(y_pred, y)
+    score = knn.score(y, y_pred)
 
     # prepare combined figure
-    plt.figure()
-    plot_data(x_train, y_train, size=150, marker='h', colors=['black' for i in range(3)])
-    plot_data(x_train, y_train, size=60, marker='h')
-    plot_data(x, y, size=100, marker='o')
-    plot_data(x, y_pred, size=20, marker='o')
-    plt.title(f'Prediction accuracy: {np.around(score, 3)}')
-    plt.show()
+    figure_combined(x_train, y_train, x, y, y_pred, score)
 
 
 if __name__ == "__main__":
