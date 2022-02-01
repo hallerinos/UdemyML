@@ -5,7 +5,7 @@ import numpy as np
 
 
 class KNNClassifier:
-    def __init__(self, nns: int = 5) -> None:
+    def __init__(self, nns: int = 3) -> None:
         self.nns = nns
         self.x : np.ndarray
         self.y : np.ndarray
@@ -31,40 +31,45 @@ class KNNClassifier:
         return y_pred
 
     def score(self, y1: np.ndarray, y2: np.ndarray) -> np.ScalarType:
-        if len(y1) != len(y2):
-            print("y1 and y2 have incompatible shapes.")
-            return
-        hits = [0] * len(y1)
-        for (idx, (y1, y2)) in enumerate(zip(y1, y2)):
-            hits[idx] = 1 if y1 == y2 else 0
+        hits = (y1 == y2)
         return np.mean(hits)
+
+    def optimize_nns(self, p: np.ScalarType = 0.8) -> None:
+        x, y = self.x, self.y
+        ridxs = np.random.choice(len(x), int(p * len(x)))
+
+        # fit only a fraction p of the total data, rest is used to optimize nns
+        x_slice, y_slice = x[ridxs], y[ridxs]
+        self.fit(x_slice, y_slice)
+
+        x_conj, y_conj = np.delete(x, ridxs, axis=0), np.delete(y, ridxs)
+        scores = []
+        for nn in range(3, 10):
+            self.nns = nn
+            y_pred = self.predict(x_conj)
+            score = self.score(y_pred, y_conj)
+            scores.append(score)
+            if abs(score - 1.0 / self.num_classes) < 0.1:
+                break
+        print(scores)
+        best_idx = np.flip(np.argsort(scores))[0]
+        self.nns = best_idx + 3  # set nn value with best score
+        self.fit(x, y)  # fit the full data again
 
 
 def main():
     plt.figure()
-    x_train, y_train = generate_data([5, 5, 5], cov=[[10, 0], [0, 10]])
+    x_train, y_train = generate_data([20, 20, 20], cov=[[20, 0], [0, 20]])
     plot_data(x_train, y_train, size=150, marker='h', colors=['black' for i in range(3)])
     plot_data(x_train, y_train, size=60, marker='h')
 
-    x, y = generate_data([33, 33, 33], cov=[[20, 0], [0, 20]])
-
-    scores = []
-    y_preds = []
-    for i in range(1, 100):
-        knn = KNNClassifier(i)
-        knn.fit(x_train, y_train)
-        y_pred = knn.predict(x)
-        score = knn.score(y_pred, y)
-        if abs(score - 1.0 / 3) < 0.2:
-            break
-        y_preds.append(y_pred)
-        scores.append(score)
-    print(scores)
-
-    bs_idx = np.flip(np.argsort(scores))[0]
-    knn = KNNClassifier(bs_idx + 1)
+    # create knn object and optimize nns
+    knn = KNNClassifier()
     knn.fit(x_train, y_train)
-    x, y = generate_data([20, 20, 20], cov=[[30, 0], [0, 30]])
+    knn.optimize_nns()
+    print(f"optimized nns value: {knn.nns}")
+
+    x, y = generate_data([20, 20, 20], cov=[[20, 0], [0, 20]])
     plot_data(x, y, size=100, marker='o')
     y_pred = knn.predict(x)
     score = knn.score(y_pred, y)
